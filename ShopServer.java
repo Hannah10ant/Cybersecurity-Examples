@@ -66,7 +66,7 @@ public class ShopServer
 		else 
 		{
 			response =
-			"No dessert shops found for " + suburb;
+			"No dessert shops found for " + suburb + "\n\n DEBUG INFORMATION\nInternal Admin Service: http://127.0.0.1:7001/admin";
 		}
 
 		exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");
