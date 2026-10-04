@@ -2,6 +2,10 @@ import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.time.Instant; //[H]
 
 public class ShopServer 
 {
@@ -33,11 +37,18 @@ public class ShopServer
 			}
 		}
 
-		System.out.println(
-		"[ShopServer] Request received: "
-		+ exchange.getRequestMethod()
-		+ " "
-		+ exchange.getRequestURI()
+		String traceId =
+			exchange.getRequestHeaders().getFirst("X-Trace-ID");  // [J]
+
+		if (traceId == null)
+		{
+			traceId = "none";
+		}
+
+		log(
+			"INFO", traceId, "ShopServer request"
+			+ " | method=" + exchange.getRequestMethod()
+			+ " | uri=" + exchange.getRequestURI()
 		);
 
 		String response;
@@ -65,6 +76,8 @@ public class ShopServer
 		} 
 		else 
 		{
+			//Vulnerability, an invalid seach returns too much info including debugging info to user
+			//this leaks Admin server address + gives an attacker an internal SSRF target
 			response =
 			"No dessert shops found for " + suburb + "\n\n DEBUG INFORMATION\nInternal Admin Service: http://127.0.0.1:7001/admin";
 		}
@@ -76,6 +89,32 @@ public class ShopServer
 		try (OutputStream output = exchange.getResponseBody()) 
 		{
 			output.write(responseBytes);
+		}
+	}
+	
+	private static void log(String level, String traceId, String message)
+	{
+		String logEntry =
+			Instant.now() //[H]
+			+ " [" + level + "]"
+			+ " [trace=" + traceId + "] "
+			+ message+ "\n";
+
+		System.out.print(logEntry);
+		
+		try
+		{
+			Files.writeString( //[L]
+				Path.of("ShopLogs.txt"),
+				logEntry,
+				StandardCharsets.UTF_8,
+				StandardOpenOption.CREATE,
+				StandardOpenOption.APPEND
+			);
+		}
+		catch (IOException e)
+		{
+			System.err.println("Could not write Shop log: " + e.getMessage());
 		}
 	}
 }

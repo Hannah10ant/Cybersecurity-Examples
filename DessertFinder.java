@@ -2,6 +2,11 @@ import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant; //[H]
+import java.util.UUID;//[I]
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class DessertFinder
 {
@@ -45,6 +50,9 @@ public class DessertFinder
 		"<form action='/search' method='GET'>" +
 		"<label>Suburb:</label>" +
 		"<input type='text' name='suburb' value='Bentley'>" +
+		//Vulnerablity, backend destination included in client controlled field.
+		//Although hidden, user can still inspect and modify its value
+		//allows attacker to influence which server DessertFinder requests.
 		"<input type='hidden' name='url' " +
 		"value='http://127.0.0.1:7000/shops'>" +
 		"<button type='submit'>Find Dessert Shops</button>" +
@@ -58,6 +66,9 @@ public class DessertFinder
 	//handles requests send to /search endpoint
 	private static void searchShops(HttpExchange exchange) throws IOException 
 	{
+		String tracId = UUID.randomUUID().toString().substring(0,8); //[I]
+		log("INFO", tracId, "Incoming request | method=" + exchange.getRequestMethod()+ "| uri="+exchange.getRequestURI());
+
 		//gets query request from URL
 		String query = exchange.getRequestURI().getQuery();
 		String suburb = getQueryData(query, "suburb");
@@ -68,8 +79,20 @@ public class DessertFinder
 			suburb = "Perth";
 		}
 
+		//Vulnerability, read destination URL directly from user controlled query data
+		//value accepted without checking it points to shop server
 		//gets url val from query string
 		String url = getQueryData(query, "url");
+		log("INFO", tracId, "User input | suburb=" + suburb + "| url=" + url);
+		// Detection only: this records an abnormal destination.
+		if (url != null && !url.equals("http://127.0.0.1:7000/shops"))
+		{
+			log(
+				"SECURITY-WARN",
+				tracId,
+				"Unexpected server destination detected=" + url
+			);
+		}
 
 		//if url is null or empty, default server destination
 		if (url == null || url.isEmpty()) 
@@ -77,16 +100,25 @@ public class DessertFinder
 			url = "http://127.0.0.1:7000/shops";
 		}
 
+		//Vulnerablitiy, unvalidated user controlled URL used to make server request
+		//attacker can replace ShopServer address with admin server address
 		//creates URL that DessertFinder will request
 		String remoteUrl = url
 						+ "?suburb="
 						+ URLEncoder.encode(suburb, StandardCharsets.UTF_8);
-
+		
+		log(
+			"TRACE",
+			tracId,
+			"Preparing outbound request=" + remoteUrl
+		);
 		//useful to see which server is being requested
 		System.out.println("[DessertFinder] Fetching remote resource: " + remoteUrl);
 
+		//Vulnerablitiy, DessertFinder mkaes server side request to the attacker-influenced URL
+		//becasue dest has not been validated allows SSRF against unintended services
 		//makes the server request to the URl 
-		String result = fetchUrl(remoteUrl);
+		String result = fetchUrl(remoteUrl, tracId);
 
 		//html page that displays search result
 		String html =
@@ -112,16 +144,23 @@ public class DessertFinder
 	
 
 	//makes server-side request
-	private static String fetchUrl(String url) throws IOException 
+	private static String fetchUrl(String url, String traceId) throws IOException 
 	{
+		//Vulnerability, the supplied url not been restricted or approve listed.
+		//Creating and opening this connection causes DessertFinder to go to 
+		// whatever destination supplied by user.
 		//url object made with inpput
 		URL targetUrl = new URL(url);
 
 		//opens connection to url for DessertFiner  to communicate with server
 		URLConnection connection = targetUrl.openConnection();
+		//pass same trace id to beackend serever for consistent logs matching
+		connection.setRequestProperty("X-Trace-Id", traceId); //[K]
+		log("TRACE", traceId, "Outbound request sent to remote server=" + targetUrl);
 
 		//buffered reader to read response from server
 		BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		log("TRACE", traceId, "remote server connection established=" + targetUrl);
 
 		//stores response from server
 		StringBuilder response = new StringBuilder();
@@ -134,6 +173,7 @@ public class DessertFinder
 			response.append("\n");
 		}
 		reader.close();
+		log("TRACE", traceId, "Response received from remote server=" + targetUrl);
 
 		return response.toString();
 	}
@@ -220,5 +260,30 @@ public class DessertFinder
 			}
 		}
 		return escaped.toString();
+	}
+	private static void log(String level, String traceId, String message)
+	{
+		String logEntry =
+			Instant.now()
+			+ " [" + level + "]"
+			+ " [trace=" + traceId + "] "
+			+ message+ "\n";
+
+		System.out.print(logEntry);
+		
+		try
+		{
+			Files.writeString( //[L]
+				Path.of("DessertFinderLogs.txt"),
+				logEntry,
+				StandardCharsets.UTF_8,
+				StandardOpenOption.CREATE,
+				StandardOpenOption.APPEND
+			);
+		}
+		catch (IOException e)
+		{
+			System.err.println("Could not write DessertFinder log: " + e.getMessage());
+		}
 	}
 }
