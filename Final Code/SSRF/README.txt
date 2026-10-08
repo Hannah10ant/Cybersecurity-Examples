@@ -14,8 +14,15 @@ Vulnerable Version/
 
 How To Run:
 
-Running The Server
+1. Compile first in terminal:
+javac DessertFinder.java ShopServer.java AdminServer.java
 
+2. Open 3 terminals and in each run one of these commands;
+java ShopServer
+java AdminServer
+java DessertServer
 
 Running The Exploit
+
+1. 
 
