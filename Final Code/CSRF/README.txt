@@ -11,15 +11,15 @@ Exploitation/csrf.html - HTML code containing the exploitation method
 
 Security Enhanced Version/login.php -
 Security Enhanced Version/login.html -
-Security Enhanced Version/homepagefix.php -
+Security Enhanced Version/homepage.php -
 Security Enhanced Version/CSRF vulnerableCode.html -
-Security Enhanced Version/change_emailfix.php -
+Security Enhanced Version/change_email.php - With Detection (Application Logs)
 
 Vulnerable Version/login.php -
 Vulnerable Version/login.html -
-Vulnerable Version/homepagefix.php -
+Vulnerable Version/homepage.php -
 Vulnerable Version/CSRF vulnerableCode.html -
-Vulnerable Version/change_emailfix.php -
+Vulnerable Version/change_email.php - Without Detection (Application Logs)
 
 
 
