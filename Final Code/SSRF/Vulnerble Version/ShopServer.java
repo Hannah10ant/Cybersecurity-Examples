@@ -65,8 +65,10 @@ public class ShopServer
 		} 
 		else 
 		{
+			//Vulnerability, invalid search returns internal admin service URL to user
+			// gives a target for SSRF attacks, as the user can use this URL to access internal services
 			response =
-			"No dessert shops found for " + suburb;
+			"No dessert shops found for " + suburb + "\n\n DEBUG INFORMATION: \nInternal Admin Service: http://127.0.0.1:7001/admin";
 		}
 
 		exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");

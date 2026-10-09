@@ -45,6 +45,8 @@ public class DessertFinder
 		"<form action='/search' method='GET'>" +
 		"<label>Suburb:</label>" +
 		"<input type='text' name='suburb' value='Bentley'>" +
+		//Vulnerablity, the user can change the URL to any internal service, allowing SSRF attacks
+		// even thouhg hidden user can alter the value and affect the request destination
 		"<input type='hidden' name='url' " +
 		"value='http://127.0.0.1:7000/shops'>" +
 		"<button type='submit'>Find Dessert Shops</button>" +
@@ -68,6 +70,8 @@ public class DessertFinder
 			suburb = "Perth";
 		}
 
+		//Vulnerability, read destination URL directly from user controlled query data,
+		// value accepted without validating it
 		//gets url val from query string
 		String url = getQueryData(query, "url");
 
@@ -77,6 +81,7 @@ public class DessertFinder
 			url = "http://127.0.0.1:7000/shops";
 		}
 
+		//Vulnerability, the user can change the URL to any internal service, allowing SSRF attacks
 		//creates URL that DessertFinder will request
 		String remoteUrl = url
 						+ "?suburb="
@@ -85,6 +90,8 @@ public class DessertFinder
 		//useful to see which server is being requested
 		System.out.println("[DessertFinder] Fetching remote resource: " + remoteUrl);
 
+		//Vulnerability, DessertFinder makes server side request to the URL provided by the user
+		//because destination not validated allows for SSRF attacks
 		//makes the server request to the URl 
 		String result = fetchUrl(remoteUrl);
 
@@ -114,6 +121,8 @@ public class DessertFinder
 	//makes server-side request
 	private static String fetchUrl(String url) throws IOException 
 	{
+		//Vulnerability, supplied url not on an allowlist, 
+		//so any URL can be requested, including internal services
 		//url object made with inpput
 		URL targetUrl = new URL(url);
 
