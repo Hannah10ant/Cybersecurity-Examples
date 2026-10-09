@@ -9,17 +9,17 @@ Files:
 
 Exploitation/csrf.html - HTML code containing the exploitation method
 
-Security Enhanced Version/login.php -
-Security Enhanced Version/login.html -
-Security Enhanced Version/homepage.php -
-Security Enhanced Version/CSRF vulnerableCode.html -
-Security Enhanced Version/change_email.php - With Detection (Application Logs)
+Security Enhanced Version/login.php - Processes login request, establishes authenticated session, redirects to homepage.php
+Security Enhanced Version/login.html - Interface which allows user to input credentials for login
+Security Enhanced Version/homepage.php - Homepage that contains legitimate email-change form with included random generated csrf token
+Security Enhanced Version/CSRF vulnerableCode.html - HTML files as an interface to demonstrate email-change functionality. 
+Security Enhanced Version/change_email.php - Processes email-change request, validates csrf token to reject forged request, includes application logging for extra information and detection against suspicious activity. 
 
-Vulnerable Version/login.php -
-Vulnerable Version/login.html -
-Vulnerable Version/homepage.php -
-Vulnerable Version/CSRF vulnerableCode.html -
-Vulnerable Version/change_email.php - Without Detection (Application Logs)
+Vulnerable Version/login.php - Processes login request, establishes authenticated session, redirects to homepage.php
+Vulnerable Version/login.html - Interface which allows user to input credentials for login
+Vulnerable Version/homepage.php - Homepage that contains legitimate email-change form without csrf token protection
+Vulnerable Version/CSRF vulnerableCode.html - HTML files as an interface to demonstrate email-change functionality. 
+Vulnerable Version/change_email.php - Processes email-change request without csrf token validation or logging
 
 
 
